@@ -35,18 +35,20 @@ func (handler oAuth2RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		RedirectURI:  redirectURI,
 		Scope:        "connections",
 	})
+
 	if error != nil {
 		fmt.Println("There was a problem parsing the token info!", error)
 		return
 	}
+	fmt.Printf("Resquest Body to Discord:\n%+v\n", body)
 
 	tokenRequest, error := http.NewRequest(http.MethodPost, discordOAuth2TokenEndpoint, bytes.NewReader(body))
 	if error != nil {
 		fmt.Println("There was a problem creating the request", error)
 		return
 	}
-
 	tokenRequest.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	fmt.Printf("Resquest to Discord:\n%+v\n", tokenRequest)
 
 	// Make a client and make the request to discord for a token
 	client := http.Client{}
