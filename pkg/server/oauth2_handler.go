@@ -40,9 +40,9 @@ func (handler oAuth2RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		fmt.Println("There was a problem parsing the token info!", error)
 		return
 	}
-	fmt.Printf("Resquest Body to Discord:\n%+v\n", body)
+	fmt.Printf("Resquest Body to Discord:\n%+v\n", string(body))
 
-	tokenRequest, error := http.NewRequest(http.MethodPost, discordOAuth2TokenEndpoint, bytes.NewReader(body))
+	tokenRequest, error := http.NewRequest(http.MethodPost, discordOAuth2TokenEndpoint, bytes.NewBuffer(body))
 	if error != nil {
 		fmt.Println("There was a problem creating the request", error)
 		return
