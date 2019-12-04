@@ -27,3 +27,9 @@ type TokenInformation struct {
 	ExpiresAt    time.Time `json:"expires_in"`
 	RefreshToken string    `json:"refresh_token"`
 }
+
+// DiscordErrorResponse error response structure
+type DiscordErrorResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}

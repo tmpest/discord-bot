@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -15,7 +14,7 @@ import (
 type oAuth2RedirectHandler struct{}
 
 func (handler oAuth2RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Recieved a request")
+	fmt.Println("Recieved a request, using version: v0.1.8")
 	// Capture the code and state from the request
 	authCode, ok := getQueryParamFromRequest("code", r)
 	if !ok {
@@ -40,23 +39,24 @@ func (handler oAuth2RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	defer response.Body.Close()
-
+	body := json.NewDecoder(response.Body)
 	if response.StatusCode != 200 {
 		fmt.Printf("Recieved a non-success based status code from Discord!\nStatus Code Received: %+v\n%+v\n", response.StatusCode, response)
 		fmt.Println("Error Response Body:")
-		body, error := ioutil.ReadAll(response.Body)
+		var errorBody DiscordErrorResponse
+		error = body.Decode(&errorBody)
 		if error == nil {
-			fmt.Printf("%+v\n", string(body))
+			fmt.Printf("%+v\n", errorBody)
+		} else {
+			fmt.Println("Couldn't decode the error body!")
+			fmt.Println(error)
 		}
 		return
 	}
 
 	// Extract the token info from the successful response
-	responseBody := &AuthResponseBody{}
-	responseBodyJSON := make([]byte, 0)
-	response.Body.Read(responseBodyJSON)
-	error = json.Unmarshal(responseBodyJSON, responseBody)
+	var responseBody AuthResponseBody
+	body.Decode(&responseBody)
 	if error != nil {
 		fmt.Println("There was a problem parsing the json response body from Discord", error)
 		return
