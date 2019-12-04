@@ -56,7 +56,7 @@ func (handler oAuth2RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		return
 	}
 	if response.StatusCode != 200 {
-		fmt.Printf("Recieved a non-success based status code from Discord!\nStatus Code Received: %+v", response.StatusCode)
+		fmt.Printf("Recieved a non-success based status code from Discord!\nStatus Code Received: %+v\n%+v\n", response.StatusCode, response)
 		return
 	}
 
@@ -89,7 +89,7 @@ func (handler oAuth2RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		fmt.Println("There was a problem setting the Redis Cache", error)
 		return
 	}
-	fmt.Printf("Success! Cached token information for account: %+v", state[0])
+	fmt.Printf("Success! Cached token information for account: %+v\n", state[0])
 }
 
 func getQueryParamFromRequest(paramName string, r *http.Request) ([]string, bool) {
