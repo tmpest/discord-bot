@@ -1,10 +1,11 @@
 package server
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -26,43 +27,28 @@ func (handler oAuth2RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	}
 
 	fmt.Println("Making a request to Discord")
-	// Build request for token information from Discord
-	body, error := json.Marshal(TokenRequestBody{
-		ClientID:     os.Getenv("TMPEST_BOT_CLIENT_ID"),
-		ClientSecret: os.Getenv("TMPEST_BOT_CLIENT_SECRET"),
-		GrantType:    "authorization_code",
-		Code:         authCode[0],
-		RedirectURI:  redirectURI,
-		Scope:        "connections",
+	response, error := http.PostForm(discordOAuth2TokenEndpoint, url.Values{
+		"client_id":     {os.Getenv("TMPEST_BOT_CLIENT_ID")},
+		"client_secret": {os.Getenv("TMPEST_BOT_CLIENT_SECRET")},
+		"grant_type":    {"authorization_code"},
+		"code":          {authCode[0]},
+		"redirect_uri":  {redirectURI},
+		"scope":         {"connections"},
 	})
-
-	if error != nil {
-		fmt.Println("There was a problem parsing the token info!", error)
-		return
-	}
-	fmt.Printf("Resquest Body to Discord:\n%+v\n", string(body))
-
-	tokenRequest, error := http.NewRequest(http.MethodPost, discordOAuth2TokenEndpoint, bytes.NewBuffer(body))
-	if error != nil {
-		fmt.Println("There was a problem creating the request", error)
-		return
-	}
-	tokenRequest.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	fmt.Printf("Resquest to Discord:\n%+v\n", tokenRequest)
-
-	// Make a client and make the request to discord for a token
-	client := http.Client{}
-	response, error := client.Do(tokenRequest)
 	if error != nil {
 		fmt.Println("There was a problem making the request to Discord for the Token", error)
 		return
 	}
+
+	defer response.Body.Close()
+
 	if response.StatusCode != 200 {
 		fmt.Printf("Recieved a non-success based status code from Discord!\nStatus Code Received: %+v\n%+v\n", response.StatusCode, response)
 		fmt.Println("Error Response Body:")
-		body := make([]byte, 0)
-		response.Body.Read(body)
-		fmt.Printf("%+v\n", string(body))
+		body, error := ioutil.ReadAll(response.Body)
+		if error == nil {
+			fmt.Printf("%+v\n", string(body))
+		}
 		return
 	}
 
