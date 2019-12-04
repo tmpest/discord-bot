@@ -55,14 +55,14 @@ func (handler oAuth2RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	response, error := client.Do(tokenRequest)
 	if error != nil {
 		fmt.Println("There was a problem making the request to Discord for the Token", error)
-		fmt.Println("Error Response Body:")
-		body := make([]byte, 0)
-		response.Body.Read(body)
-		fmt.Printf("%+v\n", string(body))
 		return
 	}
 	if response.StatusCode != 200 {
 		fmt.Printf("Recieved a non-success based status code from Discord!\nStatus Code Received: %+v\n%+v\n", response.StatusCode, response)
+		fmt.Println("Error Response Body:")
+		body := make([]byte, 0)
+		response.Body.Read(body)
+		fmt.Printf("%+v\n", string(body))
 		return
 	}
 
