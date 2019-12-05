@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
@@ -15,7 +16,7 @@ import (
 type oAuth2RedirectHandler struct{}
 
 func (handler oAuth2RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Recieved a request, using version: v0.1.9")
+	fmt.Println("\nRecieved a request!")
 	// Capture the code and state from the request
 	authCode, ok := getQueryParamFromRequest("code", r)
 	if !ok {
@@ -83,25 +84,25 @@ func (handler oAuth2RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		fmt.Printf("Unable to create new AWS Session\n%+v\n", error)
 		return
 	}
-	dynamoDBClient := dynamodb.New(session)
+	dynamoDBClient := dynamodb.New(session, aws.NewConfig().WithRegion("us-west-2"))
 
-	var accountIDAttributeValue, tokenInformationAttributeValue *dynamodb.AttributeValue
-	accountIDAttributeValue = accountIDAttributeValue.SetS(state[0])
-	tokenInformationAttributeValue = tokenInformationAttributeValue.SetS(string(payload))
-
+	accountIDAttributeValue := &dynamodb.AttributeValue{S: &state[0]}
+	tokenInformationAttributeValue := &dynamodb.AttributeValue{B: payload}
 	tableName := "discord-token"
 
 	input := dynamodb.PutItemInput{
 		Item:      map[string]*dynamodb.AttributeValue{"accountID": accountIDAttributeValue, "tokenInfo": tokenInformationAttributeValue},
 		TableName: &tableName,
 	}
+	fmt.Printf("PutItemInput: \n%+v\n", input.GoString())
+
 	request, _ := dynamoDBClient.PutItemRequest(&input)
 	error = request.Send()
 	if error != nil {
 		fmt.Println("There was a problem writing to Dynamo DB", error)
 		return
 	}
-	fmt.Printf("Success! Cached token information for account: %+v\n", state[0])
+	fmt.Printf("Success! Stored token information for account: %+v\n", state[0])
 }
 
 func getQueryParamFromRequest(paramName string, r *http.Request) ([]string, bool) {
