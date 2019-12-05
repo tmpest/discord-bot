@@ -8,13 +8,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
 type oAuth2RedirectHandler struct{}
 
 func (handler oAuth2RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Recieved a request, using version: v0.1.8")
+	fmt.Println("Recieved a request, using version: v0.1.9")
 	// Capture the code and state from the request
 	authCode, ok := getQueryParamFromRequest("code", r)
 	if !ok {
@@ -63,22 +64,39 @@ func (handler oAuth2RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	}
 
 	fmt.Println("Caching the token information")
-	// Write token info to Redis
-	cache := memcache.New("memcached-11217.c10.us-east-1-2.ec2.cloud.redislabs.com:11217")
+	// Write token info to Data Store
 	expiresAt := time.Duration(time.Second.Seconds() * float64(responseBody.ExpiresAt))
-	cachePayload, error := json.Marshal(&TokenInformation{
+	payload, error := json.Marshal(&TokenInformation{
 		AccessToken:  responseBody.AccessToken,
 		RefreshToken: responseBody.RefreshToken,
 		ExpiresAt:    time.Now().Add(expiresAt),
 	})
 	if error != nil {
-		fmt.Println("There was a problem serializing the cache payload", error)
+		fmt.Println("There was a problem serializing the token information payload", error)
 		return
 	}
-	item := &memcache.Item{Key: state[0], Value: cachePayload}
-	error = cache.Set(item)
+	fmt.Println("Payload:")
+	fmt.Println(payload)
+
+	session, error := session.NewSession()
 	if error != nil {
-		fmt.Println("There was a problem setting the Redis Cache", error)
+		fmt.Printf("Unable to create new AWS Session\n%+v\n", error)
+		return
+	}
+	dynamoDBClient := dynamodb.New(session)
+	var accountIDAttributeValue, tokenInformationAttributeValue *dynamodb.AttributeValue
+	accountIDAttributeValue.SetS(state[0])
+	tokenInformationAttributeValue.SetS(string(payload))
+	tableName := "discord-token"
+
+	input := dynamodb.PutItemInput{
+		Item:      map[string]*dynamodb.AttributeValue{"accountID": accountIDAttributeValue, "tokenInfo": tokenInformationAttributeValue},
+		TableName: &tableName,
+	}
+	request, _ := dynamoDBClient.PutItemRequest(&input)
+	error = request.Send()
+	if error != nil {
+		fmt.Println("There was a problem writing to Dynamo DB", error)
 		return
 	}
 	fmt.Printf("Success! Cached token information for account: %+v\n", state[0])

@@ -6,3 +6,15 @@ Discord Bot related Go code
 ```
 go get github.com/tmpest/discord-bot
 ```
+
+## Sample Server Code
+
+```go
+package main
+
+import "github.com/tmpest/discord-bot/pkg/server"
+
+func main() {
+	server.New().Start()
+}
+```
