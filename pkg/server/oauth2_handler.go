@@ -76,7 +76,7 @@ func (handler oAuth2RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		return
 	}
 	fmt.Println("Payload:")
-	fmt.Println(payload)
+	fmt.Println(string(payload))
 
 	session, error := session.NewSession()
 	if error != nil {
@@ -84,9 +84,11 @@ func (handler oAuth2RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		return
 	}
 	dynamoDBClient := dynamodb.New(session)
+
 	var accountIDAttributeValue, tokenInformationAttributeValue *dynamodb.AttributeValue
-	accountIDAttributeValue.SetS(state[0])
-	tokenInformationAttributeValue.SetS(string(payload))
+	accountIDAttributeValue = accountIDAttributeValue.SetS(state[0])
+	tokenInformationAttributeValue = tokenInformationAttributeValue.SetS(string(payload))
+
 	tableName := "discord-token"
 
 	input := dynamodb.PutItemInput{
