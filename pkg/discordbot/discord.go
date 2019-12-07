@@ -14,7 +14,7 @@ import (
  * resolve the message by digging through other things. But saving that for later...
  */
 
-func SendMessageToChannel(s *discordgo.Session, channelID string, body string) (message *discordgo.Message) {
+func sendMessageToChannel(s *discordgo.Session, channelID string, body string) (message *discordgo.Message) {
 	message, err := s.ChannelMessageSend(channelID, body)
 	if err != nil {
 		fmt.Println("Error sending message to channel: ", err)

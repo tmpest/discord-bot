@@ -8,24 +8,23 @@ import (
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/tmpest/discord-bot/pkg/discord"
 )
 
-// DiscordBot is the encapsulation of the bot and commands it supports
-type DiscordBot struct {
+// Bot is the encapsulation of the bot and commands it supports
+type Bot struct {
 	DiscordSession *discordgo.Session
 	Commands       []Command
 }
 
-// New creates a new DiscordBot
-func New(discordToken string, commands []Command) (*DiscordBot, error) {
+// NewBot creates a new DiscordBot
+func NewBot(discordToken string, commands []Command) (*Bot, error) {
 	dg, error := discordgo.New(fmt.Sprintf("Bot %s", discordToken))
 	if error != nil {
 		fmt.Println("Error creating Discord session,", error)
 		return nil, error
 	}
 
-	bot := &DiscordBot{
+	bot := &Bot{
 		DiscordSession: dg,
 		Commands:       commands,
 	}
@@ -34,7 +33,7 @@ func New(discordToken string, commands []Command) (*DiscordBot, error) {
 }
 
 // Start enables the DiscordBot and it will run until killed via an interrupt signal
-func (bot *DiscordBot) Start() error {
+func (bot *Bot) Start() error {
 	discordSession := bot.DiscordSession
 
 	discordSession.AddHandler(bot.messageCreate)
@@ -60,7 +59,7 @@ func (bot *DiscordBot) Start() error {
 	return error
 }
 
-func (bot *DiscordBot) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+func (bot *Bot) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Ignore all messages created by the bot itself
 	if m.Author.ID == s.State.User.ID {
 		return
@@ -79,6 +78,6 @@ func (bot *DiscordBot) messageCreate(s *discordgo.Session, m *discordgo.MessageC
 		for _, command := range bot.Commands {
 			stringBuilder.WriteString(fmt.Sprintf("%+v\t%+v\n", command.keyword(), command.description()))
 		}
-		SendMessageToChannel(s, m.ChannelID, stringBuilder.String())
+		sendMessageToChannel(s, m.ChannelID, stringBuilder.String())
 	}
 }

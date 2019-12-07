@@ -6,15 +6,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/tmpest/discord-bot/pkg/server"
 )
 
 var discordTokenTableName string = "discord-token"
 
 const tokenInfoKey string = "tokenInfo"
 
-// SetTokenInfo stores token auth information in dynamo DB for a given accountID
-func SetTokenInfo(accountID *string, tokenInformation []byte) error {
+func setTokenInfo(accountID *string, tokenInformation []byte) error {
 	dynamoDBClient, error := newDynamoClient()
 	if error != nil {
 		return error
@@ -39,8 +37,7 @@ func SetTokenInfo(accountID *string, tokenInformation []byte) error {
 	return error
 }
 
-// GetTokenInfo fetches the token information for a given accountID
-func GetTokenInfo(accountID *string) (*server.TokenInformation, error) {
+func getTokenInfo(accountID *string) (*TokenInformation, error) {
 	dynamoDBClient, error := newDynamoClient()
 	if error != nil {
 		return nil, error

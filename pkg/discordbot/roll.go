@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/tmpest/discord-bot/pkg/discord"
 )
 
 // RollCommand encapsulates the logic to perform a random roll
@@ -74,7 +73,7 @@ func (cmd RollAllCommand) execute(s *discordgo.Session, m *discordgo.MessageCrea
 		fmt.Println("RollAll command invoked but un able to find participants")
 	} else {
 		stringBuilder.WriteString(fmt.Sprintf("%s wins with a roll of %d!", winner, highestRoll))
-		SendMessageToChannel(s, m.ChannelID, stringBuilder.String())
+		sendMessageToChannel(s, m.ChannelID, stringBuilder.String())
 	}
 
 	return error
@@ -88,7 +87,7 @@ func parseRollArgs(s *discordgo.Session, m *discordgo.MessageCreate) (max int, e
 		i, err := strconv.ParseInt(args[1], 10, 0)
 		if err != nil {
 			fmt.Println("Error parsing roll arguments: ", err)
-			discord.SendMessageToChannel(s, m.ChannelID, "Invalid arguments provided for the command !roll\nExample: *!roll* or *!roll 1000*")
+			sendMessageToChannel(s, m.ChannelID, "Invalid arguments provided for the command !roll\nExample: *!roll* or *!roll 1000*")
 			return 0, err
 		}
 		max = int(i)

@@ -7,8 +7,6 @@ import (
 	"net/url"
 	"os"
 	"time"
-
-	"github.com/tmpest/discord-bot/pkg/awshelper"
 )
 
 type oAuth2RedirectHandler struct{}
@@ -77,7 +75,7 @@ func (handler oAuth2RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	fmt.Println("Payload:")
 	fmt.Println(string(payload))
 
-	error = SetTokenInfo(&state[0], payload)
+	error = setTokenInfo(&state[0], payload)
 	if error != nil {
 		return
 	}
