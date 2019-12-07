@@ -28,7 +28,7 @@ func (cmd RollCommand) execute(s *discordgo.Session, m *discordgo.MessageCreate)
 
 	roll := rand.Intn(max)
 	s.ChannelMessageDelete(m.ChannelID, m.ID) //Delete the original message
-	SendMessageToChannel(s, m.ChannelID, fmt.Sprintf("%s rolled %d out of %d", m.Author.Username, roll, max))
+	sendMessageToChannel(s, m.ChannelID, fmt.Sprintf("%s rolled %d out of %d", m.Author.Username, roll, max))
 	return error
 }
 

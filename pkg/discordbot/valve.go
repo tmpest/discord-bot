@@ -1,5 +1,5 @@
 package discordbot
 
-func GetLastMatchDetails(accountId string) (string, error) {
+func getLastMatchDetails(accountID string) (string, error) {
 	return "", nil
 }
