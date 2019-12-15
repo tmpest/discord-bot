@@ -21,3 +21,20 @@ func sendMessageToChannel(s *discordgo.Session, channelID string, body string) (
 	}
 	return message
 }
+
+func getUserConnectionInfo(userID *string) {
+	tokenInfo, error := getTokenInfo(userID)
+	if error != nil {
+		// TODO
+		// Return
+	}
+	if tokenInfo == nil {
+		// TODO DM user with link to authorize this bot and instructions to try again
+		// TODO message channel you need to make sure Steam account is linked to Discord and give bot permission for this command to work, include Auth command
+	}
+
+	// TODO check for expired token and refresh if it is
+	// Should this be part of getTokenInfo? Maybe?
+
+	// Use Token to get user's Discord Connections -> SteamID
+}
